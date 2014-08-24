@@ -1,0 +1,16 @@
+[Unit]
+Description=Panamax Metrics
+After=coreos-setup-environment.service docker.service
+Requires=coreos-setup-environment.service docker.service
+
+[Service]
+TimeoutStartSec=0
+EnvironmentFile=/var/panamax/.coreosenv
+ExecStartPre=/usr/bin/docker pull ${CADVISOR_IMAGE}
+ExecStartPre=/bin/sh -c "docker rm -f ${CONTAINER_NAME_CADVISOR} || true"
+ExecStart=/usr/bin/docker run --volume=/var/run:/var/run:rw --volume=/sys/fs/cgroup/:/sys/fs/cgroup:ro --volume=/var/lib/docker/:/var/lib/docker:ro --publish=:8080 --name=${CONTAINER_NAME_CADVISOR} ${CADVISOR_IMAGE}
+ExecStop=/usr/bin/docker stop ${CONTAINER_NAME_CADVISOR}
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

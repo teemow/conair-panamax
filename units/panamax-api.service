@@ -1,0 +1,18 @@
+[Unit]
+Description=Panamax API
+After=coreos-setup-environment.service docker.service
+Requires=coreos-setup-environment.service docker.service
+
+[Service]
+TimeoutStartSec=0
+EnvironmentFile=/etc/environment
+EnvironmentFile=/var/panamax/.coreosenv
+Environment="IMAGE=centurylink/panamax-api"
+ExecStartPre=/usr/bin/docker pull $IMAGE
+ExecStartPre=/bin/sh -c "docker rm -f ${CONTAINER_NAME_API} || true"
+ExecStart=/usr/bin/docker run --name ${CONTAINER_NAME_API} -v /var/panamax-data:/usr/src/app/db/mnt -m=1g -c=10 -v /var/run/docker.sock:/run/docker.sock:rw -e PANAMAX_ID="${PANAMAX_ID}" -e JOURNAL_ENDPOINT=${COREOS_PUBLIC_IPV4}:19531 -e FLEETCTL_ENDPOINT=${COREOS_PUBLIC_IPV4}:4001 -t -p 3001:3000 $IMAGE
+ExecStop=/usr/bin/docker stop ${CONTAINER_NAME_API}
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
