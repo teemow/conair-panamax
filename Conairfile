@@ -1,16 +1,10 @@
 FROM coreos
 
-PKG unzip
-
-RUN curl -O http://download.panamax.io/installer/pmx-installer-latest.zip
-RUN unzip pmx-installer-latest.zip -d /var/panamax
-
-RUN touch /var/panamax/.coreosenv
-RUN echo "" >> /var/panamax/.coreosenv
-RUN echo "PANAMAX_ID=\"$(uuidgen)\"" >> /var/panamax/.coreosenv
+ADD env /etc/panamax
+RUN echo "PANAMAX_ID=\"$(uuidgen)\"" >> /etc/panamax
 
 ADD units/panamax-api.service /etc/systemd/system/
 ADD units/panamax-ui.service /etc/systemd/system/
-ADD units/panamax-metrics.service /etc/systemd/system/
+ADD units/cadvisor.service /etc/systemd/system/
 
-ENABLE systemd-journal-gatewayd.socket panamax-api panamax-ui panamax-metrics
+ENABLE systemd-journal-gatewayd.socket panamax-api panamax-ui

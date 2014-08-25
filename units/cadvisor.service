@@ -1,0 +1,17 @@
+[Unit]
+Description=Panamax metrics
+After=coreos-setup-environment.service docker.service
+Requires=coreos-setup-environment.service docker.service
+
+[Service]
+TimeoutStartSec=0
+EnvironmentFile=/etc/panamax
+Environment="IMAGE=google/cadvisor:latest"
+ExecStartPre=/usr/bin/docker pull $IMAGE
+ExecStartPre=/bin/sh -c "docker rm -f ${CONTAINER_NAME_CADVISOR} || true"
+ExecStart=/usr/bin/docker run --volume=/var/run:/var/run:rw --volume=/sys/fs/cgroup/:/sys/fs/cgroup:ro --volume=/var/lib/docker/:/var/lib/docker:ro --publish=:8080 --name=${CONTAINER_NAME_CADVISOR} $IMAGE
+ExecStop=/usr/bin/docker stop ${CONTAINER_NAME_CADVISOR}
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
